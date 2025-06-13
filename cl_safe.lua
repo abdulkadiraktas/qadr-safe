@@ -214,13 +214,16 @@ function RotateSafeDial(rotationDirection)
 		end
 
 		local rotationChange = multiplier * rotationPerNumber
+		local SafeDialRotation_old = SafeDialRotation
 		SafeDialRotation = SafeDialRotation + rotationChange
 		if SafeDialRotation > 360 then
 			SafeDialRotation = SafeDialRotation - 360
 		elseif SafeDialRotation < 0 then
 			SafeDialRotation = SafeDialRotation + 360
 		end
-		sescal("Mud5_Sounds","Dial_Turn_Single")
+		if math.abs(math.floor(SafeDialRotation_old) - math.floor(SafeDialRotation)) == 1 then
+			sescal("Mud5_Sounds", "Dial_Turn_Single")
+		end
 
 	end
 
