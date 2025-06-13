@@ -86,13 +86,16 @@ function createSafe(combination)
 			DrawSprites(true)
 			res = RunMiniGame()
 
+			local label  = CreateVarString(10, 'LITERAL_STRING', 'Break Safe')
+			PromptSetActiveGroupThisFrame(Prompts, label)
+			DrawText(_requiredDialRotationDirection, 0.5, 0.9, 0.7, 0.7, 255, 255, 255, 255, true, true)
 			if res == true then
 				return res
 			elseif res == false then
 				return res
 			end
 
-			Citizen.Wait(0)
+			Wait(0)
 		end
 	end
 end
