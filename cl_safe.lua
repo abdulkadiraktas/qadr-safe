@@ -6,6 +6,57 @@ RegisterCommand("createSafe",function()
 	local ss = createSafe({math.random(0,99), math.random(0,99), math.random(0,99)})
 	print(ss)
 end, false)
+
+local CancelPrompt, OpenPrompt, RotatePrompt, SlowPrompt
+local Prompts = GetRandomIntInRange(0, 0xffffff)
+
+Citizen.CreateThread(function()
+	Citizen.InvokeNative(0xD9130842D7226045, 'Mud5_Sounds', 0)
+
+    local str = 'Cancel'
+    CancelPrompt = PromptRegisterBegin()
+    PromptSetControlAction(CancelPrompt, 0x156F7119)	-- ESC
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(CancelPrompt, str)
+    PromptSetEnabled(CancelPrompt, true)
+    PromptSetVisible(CancelPrompt, true)
+    PromptSetStandardMode(CancelPrompt, 1000)
+    PromptSetGroup(CancelPrompt, Prompts)
+    PromptRegisterEnd(CancelPrompt)
+
+	local str = 'Open'
+    OpenPrompt = PromptRegisterBegin()
+    PromptSetControlAction(OpenPrompt, 0x2CD5343E)	-- W
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(OpenPrompt, str)
+    PromptSetEnabled(OpenPrompt, true)
+    PromptSetVisible(OpenPrompt, true)
+    PromptSetStandardMode(OpenPrompt, 1000)
+    PromptSetGroup(OpenPrompt, Prompts)
+    PromptRegisterEnd(OpenPrompt)
+
+	local str = 'Rotate'
+    RotatePrompt = PromptRegisterBegin()
+    PromptSetControlAction(RotatePrompt, 0x7065027D)	-- A
+	PromptSetControlAction(RotatePrompt, 0xB4E465B4)	-- D
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(RotatePrompt, str)
+    PromptSetEnabled(RotatePrompt, true)
+    PromptSetVisible(RotatePrompt, true)
+    PromptSetStandardMode(RotatePrompt, 1000)
+    PromptSetGroup(RotatePrompt, Prompts)
+    PromptRegisterEnd(RotatePrompt)
+
+	local str = 'Slow (Hold)'
+    SlowPrompt = PromptRegisterBegin()
+    PromptSetControlAction(SlowPrompt, 0x8FFC75D6)
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(SlowPrompt, str)
+    PromptSetEnabled(SlowPrompt, true)
+    PromptSetVisible(SlowPrompt, true)
+    PromptSetStandardMode(SlowPrompt, 1000)
+    PromptSetGroup(SlowPrompt, Prompts)
+    PromptRegisterEnd(SlowPrompt)
 end)
 
 function createSafe(combination)
