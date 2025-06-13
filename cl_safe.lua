@@ -3,8 +3,9 @@ isMinigame = false
 _SafeCrackingStates = "Setup"
 
 RegisterCommand("createSafe",function()
-	local ss = createSafe({math.random(0,99)})
+	local ss = createSafe({math.random(0,99), math.random(0,99), math.random(0,99)})
 	print(ss)
+end, false)
 end)
 
 function createSafe(combination)
