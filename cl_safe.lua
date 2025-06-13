@@ -77,6 +77,9 @@ function createSafe(combination)
 	RequestStreamedTextureDict("qadr_safe_cracking",false)
 	RequestStreamedTextureDict("ui_startup_textures",false)
 	if isMinigame then
+		if not combination then
+			combination = {math.random(0,99)}
+		end
 		InitializeSafe(combination)
 		while isMinigame do
 			--playFx("mini@safe_cracking","idle_base")
