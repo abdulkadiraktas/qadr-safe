@@ -153,12 +153,12 @@ function RunMiniGame()
 			return false
 		end
 
-		if IsControlJustPressed(0,0xD27782E3) then
+		if IsControlJustPressed(0,0x156F7119) then
 			EndMiniGame(false)
 			return false
 		end
 
-		if IsControlJustPressed(0,0x8FD015D8) then
+		if IsControlJustPressed(0,0x2CD5343E) then
 			if _onSpot then
 				ReleaseCurrentPin()
 				_onSpot = false
