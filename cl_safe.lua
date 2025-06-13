@@ -193,20 +193,24 @@ function RunMiniGame()
 end
 
 function HandleSafeDialMovement()
+	local isShiftHeld = (IsControlPressed(0, 0x8FFC75D6) or IsControlPressed(0, 0xD9D0E1C0)) and true or false
 	if IsControlPressed(0,0x7065027D) then
-		RotateSafeDial("Anticlockwise")
+		RotateSafeDial("Anticlockwise", isShiftHeld)
 		--mini_games@safecrack@base: dial_turn_right_stage_00
 	elseif IsControlPressed(0,0xB4E465B4) then
-		RotateSafeDial("Clockwise")
+		RotateSafeDial("Clockwise", isShiftHeld)
 	else
-		RotateSafeDial("Idle")
+		RotateSafeDial("Idle", nil)
 	end
 end
 
-function RotateSafeDial(rotationDirection)
+function RotateSafeDial(rotationDirection, slow)
 	if rotationDirection == "Anticlockwise" or rotationDirection == "Clockwise" then
 		local multiplier
-		local rotationPerNumber = 3.6
+		local rotationPerNumber = 1.0
+		if slow then
+			rotationPerNumber = 0.1
+		end
 		if rotationDirection == "Anticlockwise" then
 			multiplier = 1
 		elseif rotationDirection == "Clockwise" then
