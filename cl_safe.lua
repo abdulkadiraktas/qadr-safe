@@ -3,9 +3,73 @@ isMinigame = false
 _SafeCrackingStates = "Setup"
 
 RegisterCommand("createSafe",function()
-	local ss = createSafe({math.random(0,99)})
+	local ss = createSafe({math.random(0,99), math.random(0,99), math.random(0,99)})
 	print(ss)
+end, false)
+
+local CancelPrompt, OpenPrompt, RotatePrompt, SlowPrompt
+local Prompts = GetRandomIntInRange(0, 0xffffff)
+
+Citizen.CreateThread(function()
+	Citizen.InvokeNative(0xD9130842D7226045, 'Mud5_Sounds', 0)
+
+    local str = 'Cancel'
+    CancelPrompt = PromptRegisterBegin()
+    PromptSetControlAction(CancelPrompt, 0x156F7119)	-- ESC
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(CancelPrompt, str)
+    PromptSetEnabled(CancelPrompt, true)
+    PromptSetVisible(CancelPrompt, true)
+    PromptSetStandardMode(CancelPrompt, 1000)
+    PromptSetGroup(CancelPrompt, Prompts)
+    PromptRegisterEnd(CancelPrompt)
+
+	local str = 'Open'
+    OpenPrompt = PromptRegisterBegin()
+    PromptSetControlAction(OpenPrompt, 0x2CD5343E)	-- W
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(OpenPrompt, str)
+    PromptSetEnabled(OpenPrompt, true)
+    PromptSetVisible(OpenPrompt, true)
+    PromptSetStandardMode(OpenPrompt, 1000)
+    PromptSetGroup(OpenPrompt, Prompts)
+    PromptRegisterEnd(OpenPrompt)
+
+	local str = 'Rotate'
+    RotatePrompt = PromptRegisterBegin()
+    PromptSetControlAction(RotatePrompt, 0x7065027D)	-- A
+	PromptSetControlAction(RotatePrompt, 0xB4E465B4)	-- D
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(RotatePrompt, str)
+    PromptSetEnabled(RotatePrompt, true)
+    PromptSetVisible(RotatePrompt, true)
+    PromptSetStandardMode(RotatePrompt, 1000)
+    PromptSetGroup(RotatePrompt, Prompts)
+    PromptRegisterEnd(RotatePrompt)
+
+	local str = 'Slow (Hold)'
+    SlowPrompt = PromptRegisterBegin()
+    PromptSetControlAction(SlowPrompt, 0x8FFC75D6)
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(SlowPrompt, str)
+    PromptSetEnabled(SlowPrompt, true)
+    PromptSetVisible(SlowPrompt, true)
+    PromptSetStandardMode(SlowPrompt, 1000)
+    PromptSetGroup(SlowPrompt, Prompts)
+    PromptRegisterEnd(SlowPrompt)
 end)
+
+local function DrawText(text, x, y, fontscale, fontsize, r, g, b, alpha, textcentred, shadow)
+    local str = CreateVarString(10, "LITERAL_STRING", text)
+    SetTextScale(fontscale, fontsize)
+    SetTextColor(r, g, b, alpha)
+    SetTextCentre(textcentred)
+    if shadow then 
+        SetTextDropshadow(1, 0, 0, 255)
+    end
+    SetTextFontForCurrentCommand(1)
+    DisplayText(str, x, y)
+end
 
 function createSafe(combination)
 	local res
@@ -13,19 +77,25 @@ function createSafe(combination)
 	RequestStreamedTextureDict("qadr_safe_cracking",false)
 	RequestStreamedTextureDict("ui_startup_textures",false)
 	if isMinigame then
+		if not combination then
+			combination = {math.random(0,99)}
+		end
 		InitializeSafe(combination)
 		while isMinigame do
 			--playFx("mini@safe_cracking","idle_base")
 			DrawSprites(true)
 			res = RunMiniGame()
 
+			local label  = CreateVarString(10, 'LITERAL_STRING', 'Break Safe')
+			PromptSetActiveGroupThisFrame(Prompts, label)
+			DrawText(_requiredDialRotationDirection, 0.5, 0.9, 0.7, 0.7, 255, 255, 255, 255, true, true)
 			if res == true then
 				return res
 			elseif res == false then
 				return res
 			end
 
-			Citizen.Wait(0)
+			Wait(0)
 		end
 	end
 end
@@ -83,12 +153,12 @@ function RunMiniGame()
 			return false
 		end
 
-		if IsControlJustPressed(0,0xD27782E3) then
+		if IsControlJustPressed(0,0x156F7119) then
 			EndMiniGame(false)
 			return false
 		end
 
-		if IsControlJustPressed(0,0x8FD015D8) then
+		if IsControlJustPressed(0,0x2CD5343E) then
 			if _onSpot then
 				ReleaseCurrentPin()
 				_onSpot = false
@@ -123,20 +193,24 @@ function RunMiniGame()
 end
 
 function HandleSafeDialMovement()
+	local isShiftHeld = (IsControlPressed(0, 0x8FFC75D6) or IsControlPressed(0, 0xD9D0E1C0)) and true or false
 	if IsControlPressed(0,0x7065027D) then
-		RotateSafeDial("Anticlockwise")
+		RotateSafeDial("Anticlockwise", isShiftHeld)
 		--mini_games@safecrack@base: dial_turn_right_stage_00
 	elseif IsControlPressed(0,0xB4E465B4) then
-		RotateSafeDial("Clockwise")
+		RotateSafeDial("Clockwise", isShiftHeld)
 	else
-		RotateSafeDial("Idle")
+		RotateSafeDial("Idle", nil)
 	end
 end
 
-function RotateSafeDial(rotationDirection)
+function RotateSafeDial(rotationDirection, slow)
 	if rotationDirection == "Anticlockwise" or rotationDirection == "Clockwise" then
 		local multiplier
-		local rotationPerNumber = 3.6
+		local rotationPerNumber = 1.0
+		if slow then
+			rotationPerNumber = 0.1
+		end
 		if rotationDirection == "Anticlockwise" then
 			multiplier = 1
 		elseif rotationDirection == "Clockwise" then
@@ -144,13 +218,16 @@ function RotateSafeDial(rotationDirection)
 		end
 
 		local rotationChange = multiplier * rotationPerNumber
+		local SafeDialRotation_old = SafeDialRotation
 		SafeDialRotation = SafeDialRotation + rotationChange
 		if SafeDialRotation > 360 then
 			SafeDialRotation = SafeDialRotation - 360
 		elseif SafeDialRotation < 0 then
 			SafeDialRotation = SafeDialRotation + 360
 		end
-		sescal("Mud5_Sounds","Dial_Turn_Single")
+		if math.abs(math.floor(SafeDialRotation_old) - math.floor(SafeDialRotation)) == 1 then
+			sescal("Mud5_Sounds", "Dial_Turn_Single")
+		end
 
 	end
 
